@@ -73,34 +73,27 @@ INSERT INTO projects (project_name) VALUES
 
 -- Sample Assignments
 INSERT INTO assignments (employee_id, project_id, start_date, end_date) VALUES
-(1, 1, '2025-06-01', '2025-06-15'), -- Yash to design Database (assignment_id 1)
-(1, 2, '2025-06-01', '2025-06-15'), -- Yash to design interaction scripts for the database (assignment_id 2)
-(1, 3, '2025-06-15', '2025-06-18'), -- Yash to setup ADK locally (assignment_id 3)
-(1, 4, '2025-06-15', '2025-06-31'); -- Yash to setup ADK Timesheet Agent (assignment_id 4)
+(1, 1, '2025-06-01', '2025-06-10'), -- Design Database (assignment_id 1)
+(1, 2, '2025-06-11', '2025-06-13'), -- Design interaction scripts for the database (assignment_id 2)
+(1, 3, '2025-06-14', '2025-06-15'), -- Setup ADK locally (assignment_id 3)
+(1, 4, '2025-06-16', '2025-06-18'); -- Setup ADK Timesheet Agent (assignment_id 4)
 
 -- Sample Timesheet Entries
--- Yash (employee_id 1) on Timesheet Database design (project_id 1)
+-- (employee_id 1) on Timesheet Database design (project_id 1)
 INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
 (1, 1, '2025-06-01', 7.6),
 (1, 1, '2025-06-02', 7.6);
 
--- Yash (employee_id 1) on Timesheet interaction scripts (project_id 2)
+-- (employee_id 1) on Timesheet interaction scripts (project_id 2)
 INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
 (1, 2, '2025-06-03', 7.6);
 
--- Yash (employee_id 1) on ADK Setup (project_id 3)
+-- (employee_id 1) on ADK Setup (project_id 3)
 INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
-(1, 3, '2025-06-15', 7.6);
+(1, 3, '2025-06-01', 7.6);
 
--- Yash (employee_id 1) on ADK Agent (project_id 4)
+-- (employee_id 1) on ADK Agent (project_id 4)
 INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
-(1, 4, '2025-06-16', 7.6);
+(1, 4, '2025-06-02', 7.6);
 
-/*
--- To test ON DELETE RESTRICT:
--- 1. Run all sample data inserts.
--- 2. Try to delete Yash: DELETE FROM employees WHERE employee_id = 1; -- This should fail.
--- 3. Try to delete 'Timesheet Database design' project: DELETE FROM projects WHERE project_id = 1; -- This should fail.
-*/
-
-SELECT 'Simplified database schema (v3 - Idempotent) created successfully. Foreign keys enabled. Sample data inserted.';
+SELECT 'Database schema created successfully. Foreign keys enabled. Sample data inserted.';

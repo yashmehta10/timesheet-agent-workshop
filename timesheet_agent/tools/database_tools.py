@@ -6,12 +6,30 @@ import os
 # This path will be defined either via .env from ADK or Agent Engine or Cloud Run
 DATABASE_FILE_PATH = os.environ.get('TIMESHEET_DB_PATH', '../database/timesheet.db')
 
-def get_assignment_metadata_for_employee(employee_id: int) -> List[Dict[str, Any]]:
+def get_assignment_metadata_for_employee(employee_id: int, start_date_str: str, end_date_str: str, workdays_in_period: List[str]) -> Dict[str, Any]:
     """
-    Reads assignment metadata from the SQLite database for a specific employee.
-    (Function definition as previously established)
+    For a given employee and list of workdays, finds the active project assignments for each day.
+
+    This function first fetches all assignments for the employee that overlap with the
+    broader start and end date range for efficiency. It then processes these assignments
+    in memory to map active projects to each specific workday provided in the list.
+
+    Args:
+        employee_id: The ID of the employee.
+        start_date_str: The start date of the overall period to check (YYYY-MM-DD).
+        end_date_str: The end date of the overall period to check (YYYY-MM-DD).
+        workdays_in_period: A list of specific date strings (YYYY-MM-DD) for which
+                            to find active assignments.
+
+    Returns:
+        A dictionary where keys are the workdays (from workdays_in_period) and
+        values are a list of dictionaries, each representing an active project
+        assignment for that day (e.g., {"project_id": ..., "project_name": ...}).
+        Returns a dictionary with an "error" key if a database issue occurs.
     """
-    assignments_metadata: List[Dict[str, Any]] = []
+    # Initialize the result map with empty lists for each workday
+    daily_assignments: Dict[str, List[Dict[str, Any]]] = {day: [] for day in workdays_in_period}
+    all_relevant_assignments: List[Dict[str, Any]] = []
     conn: Optional[sqlite3.Connection] = None
     db_path = DATABASE_FILE_PATH
 
@@ -19,39 +37,61 @@ def get_assignment_metadata_for_employee(employee_id: int) -> List[Dict[str, Any
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        
+        # Query for all assignments that *overlap* with the given date range.
+        # This is more efficient than querying for each day individually.
         query = """
             SELECT
-                a.assignment_id,
-                e.first_name || ' ' || e.last_name AS employee_name,
+                p.project_id,
                 p.project_name,
                 a.start_date,
                 a.end_date
             FROM
                 assignments a
             JOIN
-                employees e ON a.employee_id = e.employee_id
-            JOIN
                 projects p ON a.project_id = p.project_id
             WHERE
-                a.employee_id = ?
+                a.employee_id = ? AND
+                a.start_date <= ? AND
+                (a.end_date IS NULL OR a.end_date >= ?)
             ORDER BY
-                a.start_date, p.project_name;
+                a.start_date;
         """
-        cursor.execute(query, (employee_id,))
+        cursor.execute(query, (employee_id, end_date_str, start_date_str))
         rows = cursor.fetchall()
         for row in rows:
-            assignments_metadata.append(dict(row))
+            all_relevant_assignments.append(dict(row))
+
     except sqlite3.Error as e:
         error_message = f"A database error occurred: {e}"
         print(error_message)
-        return [{
+        return {
             "error": error_message,
             "details": "Failed to retrieve assignment metadata from the database."
-        }]
+        }
     finally:
         if conn:
             conn.close()
-    return assignments_metadata
+
+    # Process the retrieved assignments to map them to specific workdays.
+    # String comparison works reliably for 'YYYY-MM-DD' formatted dates.
+    for assignment in all_relevant_assignments:
+        assignment_start = assignment['start_date']
+        assignment_end = assignment['end_date']  # This can be None for ongoing assignments
+
+        project_info = {
+            "project_id": assignment['project_id'],
+            "project_name": assignment['project_name']
+        }
+
+        for day in workdays_in_period:
+            is_after_start = day >= assignment_start
+            is_before_end = (assignment_end is None) or (day <= assignment_end)
+            
+            if is_after_start and is_before_end:
+                daily_assignments[day].append(project_info)
+
+    return daily_assignments
 
 def get_timesheet_summary_by_employee_and_date_range(employee_id: int, start_date_str: str, end_date_str: str) -> List[Dict[str, Any]]:
     """
@@ -279,9 +319,10 @@ def insert_timesheet_entries(entries: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 if __name__ == '__main__':
     target_employee_id = 1 # For Yash Mehta
-    test_start_date = "2025-06-14"
+    test_start_date = "2025-06-10"
     test_end_date = "2025-06-18"
     # Example workdays list, in a real scenario this comes from date_math
-    test_workdays = ["2025-05-16", "2025-05-17", "2025-05-18"]
+    test_workdays = ["2025-06-10", "2025-06-11", "2025-06-12", "2025-06-13", "2025-06-16", "2025-06-17", "2025-06-18"]
 
-    print("Under-logged check:", get_under_logged_workdays(target_employee_id, test_start_date, test_end_date, test_workdays))
+    # print("Under-logged check:", get_under_logged_workdays(target_employee_id, test_start_date, test_end_date, test_workdays))
+    print(get_assignment_metadata_for_employee(target_employee_id, test_start_date, test_end_date, test_workdays))
