@@ -38,21 +38,27 @@ pip install -r requirements.txt
 Create a file at timesheet_agent/.env based on .env.local file:
 
 ```
-GOOGLE_GENAI_USE_VERTEXAI=
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
 GOOGLE_CLOUD_PROJECT=
-GOOGLE_CLOUD_LOCATION=
+GOOGLE_CLOUD_LOCATION=us-central1
 TIMESHEET_DB_PATH=timesheet_agent/database/timesheet.db
 ```
 
 ## 🛠️ Initialize the SQLite Database
+If you want to customise, `update timesheet_schema.sql` file
+```
+INSERT INTO employees (first_name, last_name, email) VALUES
+('<your first name>', '<your last name>', '<your email>');  -- employee_id will be 1
+```
+
 ```bash
-cd database
+cd timesheet_agent/database
 sqlite3 timesheet.db < sql/timesheet_schema.sql
 sqlite3 timesheet.db < sql/read_data.sql
 ```
 
 ## 🚀 Run the Agent Locally
-Navigate to the Agent  directory under timesheet-agent-workshop/timesheet_agent
+Navigate to the Agent directory under timesheet-agent-workshop/timesheet_agent using `cd ../..` if you are still in the database folder.
 ```bash
 adk web
 ```
