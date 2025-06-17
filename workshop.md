@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ```
 
 ## ⚙️ Set Environment Variables
-Create a file at timesheet_agent/.env based on .env.local file:
+Create a file at timesheet_agent/.env based on .env.local file: Ensure you add your GOOGLE_CLOUD_PROJECT
 
 ```
 GOOGLE_GENAI_USE_VERTEXAI=TRUE
