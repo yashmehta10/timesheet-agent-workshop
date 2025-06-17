@@ -4,8 +4,7 @@ import json
 import os
 
 # This path will be defined either via .env from ADK or Agent Engine or Cloud Run
-DATABASE_FILE_PATH = os.environ.get('TIMESHEET_DB_PATH')
-print(f"DEBUG: Attempting to use database at: {os.path.abspath(DATABASE_FILE_PATH)}")
+DATABASE_FILE_PATH = os.environ.get('TIMESHEET_DB_PATH', '../database/timesheet.db')
 
 def get_assignment_metadata_for_employee(employee_id: int) -> List[Dict[str, Any]]:
     """
@@ -102,6 +101,67 @@ def get_timesheet_summary_by_employee_and_date_range(employee_id: int, start_dat
         if conn:
             conn.close()
     return summary_data
+
+def get_under_logged_workdays(employee_id: int, start_date_str: str, end_date_str: str, workdays_in_period: List[str], expected_hours_per_day: float = 7.6) -> Dict[str, Any]:
+    """
+    Identifies workdays within a given period where the total logged hours
+    for an employee are less than expected_hours_per_day.
+
+    Args:
+        employee_id: The ID of the employee.
+        start_date_str: The start date of the period (YYYY-MM-DD).
+        end_date_str: The end date of the period (YYYY-MM-DD).
+        workdays_in_period: A list of date strings (YYYY-MM-DD) representing
+                            the actual workdays to check within the period.
+        expected_hours_per_day: The minimum hours expected to be logged per workday.
+
+    Returns:
+        A dictionary containing:
+        - "under_logged_dates": A list of date strings (YYYY-MM-DD) for workdays
+                                with insufficient hours.
+        - "checked_workdays_count": Number of workdays checked.
+        - "status_message": A descriptive message.
+    """
+    daily_hours_map: Dict[str, float] = {}
+    conn: Optional[sqlite3.Connection] = None
+    db_path = DATABASE_FILE_PATH
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        query = """
+            SELECT
+                date_worked,
+                SUM(hours_worked) AS total_hours_for_day
+            FROM
+                timesheets
+            WHERE
+                employee_id = ? AND
+                date_worked BETWEEN ? AND ?
+            GROUP BY
+                date_worked;
+        """
+        cursor.execute(query, (employee_id, start_date_str, end_date_str))
+        rows = cursor.fetchall()
+        for row in rows:
+            daily_hours_map[row[0]] = float(row[1])
+
+    except sqlite3.Error as e:
+        error_message = f"A database error occurred while checking daily logs: {e}"
+        print(error_message)
+        return {"error": error_message, "details": "Failed to retrieve daily timesheet data."}
+    finally:
+        if conn:
+            conn.close()
+
+    under_logged_dates = [
+        day for day in workdays_in_period if daily_hours_map.get(day, 0.0) < expected_hours_per_day
+    ]
+    return {
+        "under_logged_dates": under_logged_dates,
+        "checked_workdays_count": len(workdays_in_period),
+        "status_message": f"Checked {len(workdays_in_period)} workdays. Found {len(under_logged_dates)} under-logged."
+    }
 
 def _is_valid_assignment_for_date(cursor: sqlite3.Cursor, employee_id: int, project_id: int, date_worked: str) -> bool:
     """Helper function to check if a valid assignment exists for the given date."""
@@ -219,17 +279,9 @@ def insert_timesheet_entries(entries: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 if __name__ == '__main__':
     target_employee_id = 1 # For Yash Mehta
+    test_start_date = "2025-06-14"
+    test_end_date = "2025-06-18"
+    # Example workdays list, in a real scenario this comes from date_math
+    test_workdays = ["2025-05-16", "2025-05-17", "2025-05-18"]
 
-    print("BEFORE INSERTION")
-    print(get_timesheet_summary_by_employee_and_date_range(target_employee_id, "2025-05-31", "2025-05-31"))
-
-    entries = [
-        {"employee_id": 1, "project_id": 1, "date_worked": "2025-05-30", "hours_worked": 3.8}, # Assumes employee 1 and project 1 exist
-        {"employee_id": 1, "project_id": 2, "date_worked": "2025-05-30", "hours_worked": 3.8}  # Assumes employee 1 and project 2 exist
-    ]
-    print("\n--- Inserting timesheet entries ---")
-    insertion_result = insert_timesheet_entries(entries)
-    print(insertion_result)
-
-    print("AFTER INSERTION")
-    print(get_timesheet_summary_by_employee_and_date_range(target_employee_id, "2025-05-31", "2025-05-31"))
+    print("Under-logged check:", get_under_logged_workdays(target_employee_id, test_start_date, test_end_date, test_workdays))
