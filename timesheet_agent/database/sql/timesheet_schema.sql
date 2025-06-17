@@ -84,16 +84,4 @@ INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALU
 (1, 1, '2025-06-01', 7.6),
 (1, 1, '2025-06-02', 7.6);
 
--- (employee_id 1) on Timesheet interaction scripts (project_id 2)
-INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
-(1, 2, '2025-06-03', 7.6);
-
--- (employee_id 1) on ADK Setup (project_id 3)
-INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
-(1, 3, '2025-06-01', 7.6);
-
--- (employee_id 1) on ADK Agent (project_id 4)
-INSERT INTO timesheets (employee_id, project_id, date_worked, hours_worked) VALUES
-(1, 4, '2025-06-02', 7.6);
-
 SELECT 'Database schema created successfully. Foreign keys enabled. Sample data inserted.';
