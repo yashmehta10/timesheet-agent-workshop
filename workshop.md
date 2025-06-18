@@ -58,7 +58,7 @@ sqlite3 timesheet.db < sql/read_data.sql
 ```
 
 ## 🚀 Run the Agent Locally
-Navigate to the Agent directory under timesheet-agent-workshop/timesheet_agent using `cd ../..` if you are still in the database folder.
+Navigate to the root directory under (timesheet-agent-workshop) using `cd ../..` if you are still in the database folder.
 ```bash
 adk web
 ```
