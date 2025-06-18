@@ -47,66 +47,27 @@ timesheet-agent-workshop/
 │       ├── database_tools.py # Tools for interacting with the timesheet database
 │       └── datetime_tools.py # Tools for date and time operations
 ├── requirements.txt          # Python package dependencies
+├── workshop.md               # Step-by-step setup guide
 └── README.md                 # This file
 ```
 
-## Setup and Installation
+## 🚀 Quick Start
 
-1.  **Prerequisites:**
-    *   Python 3.8 or higher
-    *   Git
+For detailed setup and installation instructions, see the **[Workshop Guide](workshop.md)**.
 
-2.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/yashmehta10/timesheet-agent-workshop.git
-    cd timesheet-agent-workshop
-    ```
+The workshop includes:
+- ✅ Prerequisites and authentication setup  
+- ✅ Step-by-step installation for all platforms
+- ✅ Environment configuration
+- ✅ Database initialization
+- ✅ Troubleshooting guide
 
-3.  **Create and Activate a Virtual Environment (Recommended):**
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
+### Quick Overview:
+1. **Prerequisites:** Python 3.8+, Git, Google Cloud authentication
+2. **Install:** Clone repo → Create venv → Install dependencies → Configure environment
+3. **Run:** `adk web` → Access at `http://localhost:8000`
 
-4.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-5.  **Set Up Environment Variables:**
-    Create a `.env` file in the `timesheet_agent/` directory (or configure environment variables directly in your deployment environment). You can use `timesheet_agent/.env.local` as a template.
-    ```env
-    # timesheet_agent/.env
-    GOOGLE_GENAI_USE_VERTEXAI=true # Or false, depending on your setup
-    GOOGLE_CLOUD_PROJECT="your-gcp-project-id" # If using Vertex AI
-    GOOGLE_CLOUD_LOCATION="your-gcp-location"  # If using Vertex AI
-    TIMESHEET_DB_PATH="timesheet_agent/database/timesheet.db" # Path to your SQLite database
-    ```
-    *   `GOOGLE_GENAI_USE_VERTEXAI`: Set to `true` or `false` depending on whether you are using Vertex AI for the Gemini model.
-    *   `GOOGLE_CLOUD_PROJECT`: Your Google Cloud Project ID (if using Vertex AI).
-    *   `GOOGLE_CLOUD_LOCATION`: Your Google Cloud Location (if using Vertex AI).
-    *   `TIMESHEET_DB_PATH`: The absolute or relative path to the SQLite database file. The default in `.env.local` points to `timesheet_agent/database/timesheet.db`.
-
-6.  **Initialize the Database:**
-    The database schema and sample data can be created by running the `timesheet_agent/database/sql/timesheet_schema.sql` script using a SQLite client.
-    For example, using the `sqlite3` CLI:
-    ```bash
-    sqlite3 timesheet_agent/database/timesheet.db < timesheet_agent/database/sql/timesheet_schema.sql
-    ```
-    This will create the necessary tables (`employees`, `projects`, `assignments`, `timesheets`) and populate them with initial sample data. Ensure the path specified by `TIMESHEET_DB_PATH` matches where you create the database.
-
-## Running the Agent
-
-The agent is built using the Google Agent Development Kit (ADK).
-
-The main agent definition is in `timesheet_agent/agent.py`.
-
-To run the agent locally in a web-based playground environment provided by the ADK, navigate to the root directory of the project (`timesheet-agent-workshop/`) in your terminal (ensure your virtual environment is activated and environment variables from `timesheet_agent/.env` are loaded or set) and run:
-
-```bash
-adk web
-```
-This command will start a local server, and you can typically access the playground by opening `http://127.0.0.1:8000` (or the address shown in your terminal) in your web browser. You can then interact with your `timesheet_agent`.
+**👉 [Start with the Workshop Guide →](workshop.md)**
 
 ## Agent Functionality
 
@@ -170,4 +131,6 @@ When contributing, please ensure:
 
 ---
 
-This README provides a starting point. You can expand on sections like "Running the Agent" with specific ADK commands once you have them, or add a "Troubleshooting" section as needed.
+## 📖 Documentation
+
+- **[Workshop Guide](workshop.md)** - Complete setup and installation instructions
